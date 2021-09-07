@@ -1,7 +1,7 @@
 /*-----------------------------------------------------------------------------
 Universidad del Valle de Guatemala
 BE3015 - Electrónica DIgital 2
-Laboratorio 2 - Interrupciones y Temporizador
+Proyecto 1 - Sensor de Temperatura
 Jeffrey Chung
 17024
 -----------------------------------------------------------------------------*/
