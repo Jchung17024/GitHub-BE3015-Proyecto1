@@ -62,18 +62,33 @@ Jeffrey Chung
 //-----------------------------------------------------------------------------
 // VARIABLES GLOBALES
 //-----------------------------------------------------------------------------
-
+int adcTemperature = 0;
+float temperature = 0;
 
 //-----------------------------------------------------------------------------
 // ISR
 //-----------------------------------------------------------------------------
-
+// interrupcion para medicion de temp. con boton
+void IRAM_ATTR ISR_readTemp(){
+  adcTemperature = analogRead(sensor_temp);
+  temperature = adcTemperature/204.8;
+  Serial.print("Temperature: ");
+  Serial.print(temperature, 1);
+  Serial.print("°C");
+}
 
 //-----------------------------------------------------------------------------
 // CONFIG.
 //-----------------------------------------------------------------------------
 void setup() {
-  // put your setup code here, to run once:
+  // baud rate de 115200Hz
+  Serial.begin(115200);
+
+  // config. pines como entradas y salidas
+  pinMode(read_temp, INPUT_PULLUP);
+
+  // isr del boton conectado en pin 13, interrupcion ISR_readtemp, modo falling
+  attachInterrupt(read_temp, ISR_readTemp, FALLING);
 }
 
 
@@ -81,7 +96,6 @@ void setup() {
 // LOOP PRINCIPAL
 //-----------------------------------------------------------------------------
 void loop() {
-  // put your main code here, to run repeatedly:
 }
 
 
