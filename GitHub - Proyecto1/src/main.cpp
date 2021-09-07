@@ -57,13 +57,17 @@ Jeffrey Chung
 //-----------------------------------------------------------------------------
 // PROTOTIPO DE FUNCIONES
 //-----------------------------------------------------------------------------
-
+void config_pwm(void);
 
 //-----------------------------------------------------------------------------
 // VARIABLES GLOBALES
 //-----------------------------------------------------------------------------
 int adcTemperature = 0;
 float temperature = 0;
+int dutycycle_red = 0;
+int dutycycle_green = 0;
+int dutycycle_blue = 0;
+int pos_servo = 0;
 
 //-----------------------------------------------------------------------------
 // ISR
@@ -87,6 +91,8 @@ void setup() {
   // config. pines como entradas y salidas
   pinMode(read_temp, INPUT_PULLUP);
 
+  config_pwm();
+
   // isr del boton conectado en pin 13, interrupcion ISR_readtemp, modo falling
   attachInterrupt(read_temp, ISR_readTemp, FALLING);
 }
@@ -96,9 +102,70 @@ void setup() {
 // LOOP PRINCIPAL
 //-----------------------------------------------------------------------------
 void loop() {
+  // semaforo y reloj de temperatura
+  //-----------------------------------------------------------------------------
+  // dutycycle de 255 = off y 0 = brightest, led RGB off inicialmente
+  dutycycle_red = 255;
+  dutycycle_green = 255;
+  dutycycle_blue = 255;
+  // 6 es el valor para 0 grados del servo 
+  pos_servo = 6;
+
+  // si el valor analógico es menor a 7.5, led RGB brilla vede
+  if(temperature < 7.5){
+    dutycycle_red = 255;
+    dutycycle_green = 0;
+    dutycycle_blue = 255;
+    pos_servo = 10;
+  }
+  
+  //si el valor analógico esta entre 7.5 y 15, led RGB brilla amarillo
+  else if(temperature <= 15 && temperature >= 7.5 ){
+    dutycycle_red = 255;
+    dutycycle_green = 180;
+    dutycycle_blue = 127;
+    pos_servo = 15;
+    }
+
+  // si el valor analógico es mayor a 15, led RGB brilla rojo
+  else if(temperature > 15){
+    dutycycle_red = 0;
+    dutycycle_green = 255;
+    dutycycle_blue = 255;
+    pos_servo = 20;
+    }
+  
+  ledcWrite(PWMchannel_red,   dutycycle_red);
+  ledcWrite(PWMchannel_green, dutycycle_green);
+  ledcWrite(PWMchannel_blue,  dutycycle_blue);
+  ledcWrite(PWMchannel_servo, pos_servo);
 }
 
 
 //-----------------------------------------------------------------------------
 // FUNCIONES ADICIONALES
 //-----------------------------------------------------------------------------
+
+// config. PWM
+//-----------------------------------------------------------------------------
+void config_pwm(void){
+  // config. pwm para RED
+  // pwm channel 0 para led rojo, freq de 144Hz, res. de 8 bits
+  ledcSetup(PWMchannel_red, PWMfreq_led, resolution);
+  ledcAttachPin(RED, PWMchannel_red);
+
+  // config. pwm para GREEN
+  // pwm channel 1 para led verde, freq de 144Hz, res. de 8 bits
+  ledcSetup(PWMchannel_green, PWMfreq_led, resolution);
+  ledcAttachPin(GREEN, PWMchannel_green);
+
+  // config. pwm para BLUE
+  // pwm channel 2 para led azul, freq de 144Hz, res. de 8 bits
+  ledcSetup(PWMchannel_blue, PWMfreq_led, resolution);
+  ledcAttachPin(BLUE, PWMchannel_blue);
+
+  // config. pwm para servo motor
+  // pwm channel 3 para servo motor, freq de 50Hz, res. de 8 bits
+  ledcSetup(PWMchannel_servo, PWMfreq_servo, resolution);
+  ledcAttachPin(servo, PWMchannel_servo);
+}
