@@ -10,7 +10,7 @@ Jeffrey Chung
 // LIBRERIAS
 //-----------------------------------------------------------------------------
 #include <Arduino.h>
-
+#include "AdafruitIO_WiFi.h"
 
 //-----------------------------------------------------------------------------
 // DEFINICION DE PINES
@@ -54,6 +54,14 @@ Jeffrey Chung
 #define g                   17
 #define dp                  16
 
+// username y key para el dashboard de adafruit IO
+#define IO_USERNAME  "Chung17024"
+#define IO_KEY       "aio_vTSZ60wBJ65qzXgwEDq7ROzFVOLZ"
+#define WIFI_SSID    "WeeFee"
+#define WIFI_PASS    "Wallao2231"
+
+AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
+
 //-----------------------------------------------------------------------------
 // PROTOTIPO DE FUNCIONES
 //-----------------------------------------------------------------------------
@@ -75,6 +83,8 @@ int temp = 0;
 int digit_decenas;
 int digit_unidades;
 int digit_decimales;
+unsigned int lastime;
+unsigned int sampletime = 3000;
 
 //-----------------------------------------------------------------------------
 // ISR
@@ -91,9 +101,29 @@ void IRAM_ATTR ISR_readTemp(){
 //-----------------------------------------------------------------------------
 // CONFIG.
 //-----------------------------------------------------------------------------
+AdafruitIO_Feed *Temperatura = io.feed("Temperatura");
 void setup() {
   // baud rate de 115200Hz
   Serial.begin(115200);
+
+  // config. de WIFI y ADAFRUIT IO
+  //---------------------------------------------------------------------------
+  while (!Serial)
+    ;
+  Serial.print("Connecting to Adafruit IO");
+
+  // connect to io.adafruit.com
+  io.connect();
+
+  // wait for a connection
+  while (io.status() < AIO_CONNECTED)
+  {
+    Serial.print(".");
+    delay(500);
+  }
+  // we are connected
+  Serial.println();
+  Serial.println(io.statusText());
 
   // config. pines como entradas y salidas
   // el boton de read_temp es entrada y los displays de 7 seg. son salidas
@@ -138,6 +168,23 @@ void setup() {
 // LOOP PRINCIPAL
 //-----------------------------------------------------------------------------
 void loop() {
+  // una alternativa al delay();
+  // cada 3s se actualiza el dashboard de adafruit
+  if (millis() - lastime >= sampletime)
+    {
+    io.run();
+    Serial.print("sending Temperatura -> ");
+    Serial.println(temperature, 1);
+    Serial.print(" °C  ");
+    Temperatura->save(temperature); // guarda los datos en el cloud de adafruit io
+
+    Serial.print(" \n");
+    Serial.print("Enviando ");
+    Serial.print(" \n");
+
+    lastime = millis();
+    }
+    
   // semaforo y reloj de temperatura
   //-----------------------------------------------------------------------------
   // dutycycle de 255 = off y 0 = brightest, led RGB off inicialmente
