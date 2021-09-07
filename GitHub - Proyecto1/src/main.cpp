@@ -58,6 +58,9 @@ Jeffrey Chung
 // PROTOTIPO DE FUNCIONES
 //-----------------------------------------------------------------------------
 void config_pwm(void);
+void desplegar7seg_decenas(uint8_t digit);
+void desplegar7seg_unidades(uint8_t digit);
+void desplegar7seg_decimales(uint8_t digit);
 
 //-----------------------------------------------------------------------------
 // VARIABLES GLOBALES
@@ -68,6 +71,10 @@ int dutycycle_red = 0;
 int dutycycle_green = 0;
 int dutycycle_blue = 0;
 int pos_servo = 0;
+int temp = 0;
+int digit_decenas;
+int digit_unidades;
+int digit_decimales;
 
 //-----------------------------------------------------------------------------
 // ISR
@@ -89,12 +96,41 @@ void setup() {
   Serial.begin(115200);
 
   // config. pines como entradas y salidas
+  // el boton de read_temp es entrada y los displays de 7 seg. son salidas
   pinMode(read_temp, INPUT_PULLUP);
+  pinMode(display0,  OUTPUT);     // display 0 despliega decenas
+  pinMode(display1,  OUTPUT);     // display 1 despliega unidades
+  pinMode(display2,  OUTPUT);     // display 2 despliega decimales
+
+  // config. todos los leds de los display de 7 seg. como salidas digitales
+  pinMode(a,  OUTPUT);
+  pinMode(b,  OUTPUT);
+  pinMode(c,  OUTPUT);
+  pinMode(d,  OUTPUT);
+  pinMode(e,  OUTPUT);
+  pinMode(f,  OUTPUT);
+  pinMode(g,  OUTPUT);
+  pinMode(dp, OUTPUT);
+
+// disp. de 7 seg. anodo comun. 1 = off, 0 = on. todos los leds off al inicio
+  digitalWrite(a,  1);
+  digitalWrite(b,  1);
+  digitalWrite(c,  1);
+  digitalWrite(d,  1);
+  digitalWrite(e,  1);
+  digitalWrite(f,  1);
+  digitalWrite(g,  1);
+  digitalWrite(dp, 1);
 
   config_pwm();
 
   // isr del boton conectado en pin 13, interrupcion ISR_readtemp, modo falling
   attachInterrupt(read_temp, ISR_readTemp, FALLING);
+
+  // todos los display off inicialmente
+  digitalWrite(display0,0);
+  digitalWrite(display1,0);
+  digitalWrite(display2,0);
 }
 
 
@@ -110,6 +146,23 @@ void loop() {
   dutycycle_blue = 255;
   // 6 es el valor para 0 grados del servo 
   pos_servo = 6;
+
+  // metodo para desplegar un valor en 3 displays de 7 seg.
+  // para desplegar decenas
+  temp = temperature * 10;
+  digit_decenas = (temp)/100;
+  desplegar7seg_decenas(digit_decenas);
+  delay(5);
+  // para desplegar unidades
+  temp = temp - (digit_decenas*100);
+  digit_unidades = temp/10;
+  desplegar7seg_unidades(digit_unidades);
+  delay(5);
+  // para desplegar decimales
+  temp = temp - (digit_unidades*10);
+  digit_decimales = temp;
+  desplegar7seg_decimales(digit_decimales);
+  delay(5);
 
   // si el valor analógico es menor a 7.5, led RGB brilla vede
   if(temperature < 7.5){
@@ -168,4 +221,382 @@ void config_pwm(void){
   // pwm channel 3 para servo motor, freq de 50Hz, res. de 8 bits
   ledcSetup(PWMchannel_servo, PWMfreq_servo, resolution);
   ledcAttachPin(servo, PWMchannel_servo);
+}
+
+// func. para desplegar en displays los valores analógicos 
+//-----------------------------------------------------------------------------
+void desplegar7seg_decenas(uint8_t digit){
+  // se prende el display 0 y apaga el resto, este despliega valor de decenas
+  digitalWrite(display0,1);
+  digitalWrite(display1,0);
+  digitalWrite(display2,0);
+
+  /*a continuacion se ven las combinaciones de pines que se deben encender
+  para desplegar un número de 0 a 9 en el display
+  esto o aplica para decenas, unidades y decimales
+  */
+  switch (digit)
+  {
+  case 0:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  1);
+    break;
+  case 1:
+    digitalWrite(a,  1);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  1);
+    break;
+
+  case 2:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  1);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  1);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+   case 3:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 4:
+    digitalWrite(a,  1);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 5:
+    digitalWrite(a,  0);
+    digitalWrite(b,  1);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 6:
+    digitalWrite(a,  0);
+    digitalWrite(b,  1);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 7:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  1);
+    break;
+
+  case 8:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 9:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+    
+  default:
+      break;
+  }
+}
+void desplegar7seg_unidades(uint8_t digit){
+  // se prende el display 1 y apaga el resto, este despliega valor de unidades
+  digitalWrite(display0, 0);
+  digitalWrite(display1, 1);
+  digitalWrite(display2, 0);
+
+  /*a continuacion se ven las combinaciones de pines que se deben encender
+  para desplegar un número de 0 a 9 en el display
+  esto o aplica para decenas, unidades y decimales
+  */
+  switch (digit)
+  {
+  case 0:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  0);
+    break;
+  case 1:
+    digitalWrite(a,  1);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  0);
+    break;
+
+  case 2:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  1);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  1);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  0);
+    break;
+
+   case 3:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  0);
+    break;
+
+  case 4:
+    digitalWrite(a,  1);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  0);
+    break;
+
+  case 5:
+    digitalWrite(a,  0);
+    digitalWrite(b,  1);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  0);
+    break;
+
+  case 6:
+    digitalWrite(a,  0);
+    digitalWrite(b,  1);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  0);
+    break;
+
+  case 7:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  0);
+    break;
+
+  case 8:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  0);
+    break;
+
+  case 9:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  0);
+    break;
+    
+  default:
+      break;
+  }
+}
+void desplegar7seg_decimales(uint8_t digit){
+  // se prende el display 2 y apaga el resto, este despliega valor de decimales
+  digitalWrite(display0, 0);
+  digitalWrite(display1, 0);
+  digitalWrite(display2, 1);
+
+  /*a continuacion se ven las combinaciones de pines que se deben encender
+  para desplegar un número de 0 a 9 en el display
+  esto o aplica para decenas, unidades y decimales
+  */
+  switch (digit)
+  {
+  case 0:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  1);
+    break;
+  case 1:
+    digitalWrite(a,  1);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  1);
+    break;
+
+  case 2:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  1);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  1);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+   case 3:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 4:
+    digitalWrite(a,  1);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 5:
+    digitalWrite(a,  0);
+    digitalWrite(b,  1);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 6:
+    digitalWrite(a,  0);
+    digitalWrite(b,  1);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 7:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  1);
+    digitalWrite(e,  1);
+    digitalWrite(f,  1);
+    digitalWrite(g,  1);
+    digitalWrite(dp,  1);
+    break;
+
+  case 8:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  0);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+
+  case 9:
+    digitalWrite(a,  0);
+    digitalWrite(b,  0);
+    digitalWrite(c,  0);
+    digitalWrite(d,  0);
+    digitalWrite(e,  1);
+    digitalWrite(f,  0);
+    digitalWrite(g,  0);
+    digitalWrite(dp,  1);
+    break;
+    
+  default:
+      break;
+  }
 }
