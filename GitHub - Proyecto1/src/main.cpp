@@ -55,10 +55,10 @@ Jeffrey Chung
 #define dp                  16
 
 // username y key para el dashboard de adafruit IO
-#define IO_USERNAME  "Chung17024"
-#define IO_KEY       "aio_vTSZ60wBJ65qzXgwEDq7ROzFVOLZ"
-#define WIFI_SSID    "WeeFee"
-#define WIFI_PASS    "Wallao2231"
+#define IO_USERNAME  "IO_USERNAME"
+#define IO_KEY       "IO_KEY"
+#define WIFI_SSID    "YOUR WIFI SSID"
+#define WIFI_PASS    "YOUR WIFI PASSWORD"
 
 AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 
